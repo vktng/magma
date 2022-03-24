@@ -41,19 +41,23 @@ py_binary(
 
 py_library(
     name = "redirectd_lib",
-    srcs = [
-        "redirect_server.py",
-        "redirect_store.py",
-    ],
+    srcs = ["redirect_server.py"],
     data = [
         "templates/404.html",
         "templates/layout.html",
     ],
     visibility = ["//visibility:public"],
     deps = [
+        ":redirect_store",
         "//lte/protos:policydb_python_proto",
         "//orc8r/gateway/python/magma/common/redis:client",
         requirement("flask"),
         requirement("wsgiserver"),
     ],
+)
+
+py_library(
+    name = "redirect_store",
+    srcs = ["redirect_store.py"],
+    visibility = ["//visibility:public"],
 )
