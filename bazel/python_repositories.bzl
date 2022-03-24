@@ -21,3 +21,25 @@ def python_repositories():
         shallow_since = "1548652954 +0800",
         remote = "https://github.com/URenko/aioh2.git",
     )
+    new_git_repository(
+        name = "ryu_repo",
+        build_file = "//bazel/external:ryu.BUILD",
+        commit = "c776e4cb68600b2ee0a4f38364f4a355502777f1",  # Corresponds to: tag = "v4.34"
+        shallow_since = "1569926530 +0900",
+        remote = "https://github.com/faucetsdn/ryu.git",
+        patches = [
+            "//bazel/patches:ryu_ipfix_args.patch",
+            "//bazel/patches:0001-Set-unknown-dpid-ofctl-log-to-debug.patch",
+        ],
+    )
+    new_git_repository(
+        name = "aioeventlet_repo",
+        remote = "https://github.com/openstack-archive/deb-python-aioeventlet.git",
+        build_file = "//bazel/external:aioeventlet.BUILD",
+        commit = "0afed1425fd36139d1a7281475a28fde3349047e",  # Corresponds to: tag = "0.5.1"
+        shallow_since = "1456158219 +0100",
+        patches = [
+            "//bazel/patches:aioeventlet_fd_exception.patch",
+            "//bazel/patches:aioeventlet.py38.patch",
+        ],
+    )
