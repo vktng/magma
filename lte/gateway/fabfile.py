@@ -48,6 +48,7 @@ in `release/magma.lockfile`
     fab dev package upload_to_aws
 """
 
+MAGMA_ROOT = "$MAGMA_ROOT"
 AGW_ROOT = "$MAGMA_ROOT/lte/gateway"
 AGW_PYTHON_ROOT = "$MAGMA_ROOT/lte/gateway/python"
 FEG_INTEG_TEST_ROOT = AGW_PYTHON_ROOT + "/integ_tests/federated_tests"
@@ -288,6 +289,7 @@ def integ_test(
     execute(_dist_upgrade)
     execute(_build_magma)
     execute(_run_sudo_python_unit_tests)
+    execute(_run_sudo_python_unit_tests_with_bazel)
     execute(_start_gateway)
 
     # Run suite of integ tests that are required to be run on the access gateway
@@ -588,6 +590,13 @@ def _run_sudo_python_unit_tests():
     with cd(AGW_ROOT):
         # Run all unit tests that are not run as pre-commit checks in CI
         run('make test_sudo_python')
+
+
+def _run_sudo_python_unit_tests_with_bazel():
+    """ Run the magma unit tests with bazel """
+    with cd(MAGMA_ROOT):
+        # Run all unit tests that are not run as pre-commit checks in CI with bazel
+        run('bazel/scripts/run_sudo_tests.sh')
 
 
 def _start_gateway():
