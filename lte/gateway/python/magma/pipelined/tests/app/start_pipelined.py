@@ -62,6 +62,15 @@ class PipelinedController(Enum):
     InOut = Controller(
         'magma.pipelined.app.inout', 'inout',
     )
+    Ingress = Controller(
+        'magma.pipelined.app.ingress', 'ingress',
+    )
+    Middle = Controller(
+        'magma.pipelined.app.middle', 'middle',
+    )
+    Egress = Controller(
+        'magma.pipelined.app.egress', 'egress',
+    )
     Arp = Controller(
         'magma.pipelined.app.arp', 'arpd',
     )

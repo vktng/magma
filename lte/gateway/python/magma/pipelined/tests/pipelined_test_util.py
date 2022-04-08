@@ -259,6 +259,14 @@ def fake_inout_setup(inout_controller):
         SetupFlowsResult.SUCCESS,
     )
 
+def fake_mandatory_controller_setup(controller):
+    TestCase().assertEqual(
+        setup_controller(
+            controller, SetupPolicyRequest(requests=[], epoch=global_epoch),
+        ),
+        SetupFlowsResult.SUCCESS,
+    )
+
 
 def fake_controller_setup(
     enf_controller=None,
