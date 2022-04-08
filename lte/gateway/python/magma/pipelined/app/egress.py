@@ -12,7 +12,30 @@ limitations under the License.
 """
 
 from magma.pipelined.app.base import MagmaController
-from magma.pipelined.app.restart_mixin import RestartMixin
+from magma.pipelined.app.restart_mixin import DefaultMsgsMap, RestartMixin
+
+EGRESS = "egress"
+
 
 class EgressController(RestartMixin, MagmaController):
     APP_NAME = "egress"
+
+    def __init__(self, *args, **kwargs):
+        super(EgressController, self).__init__(*args, **kwargs)
+        self._egress_tbl_num = self._service_manager.get_table_num(EGRESS)
+
+    def _get_default_flow_msgs(self, datapath) -> DefaultMsgsMap:
+        """
+        Gets the default flow msgs for pkt routing
+
+        Args:
+            datapath: ryu datapath struct
+        Returns:
+            The list of default msgs to add
+        """
+        return {
+            self._egress_tbl_num: self._get_default_egress_flow_msgs(datapath, mac_addr=self.config.virtual_mac),
+        }
+
+    def _get_ue_specific_flow_msgs(self, _):
+        return {}

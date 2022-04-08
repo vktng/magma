@@ -25,6 +25,7 @@ from magma.pipelined.tests.pipelined_test_util import (
     assert_bridge_snapshot_match,
     create_service_manager,
     fake_inout_setup,
+    fake_mandatory_controller_setup,
     start_ryu_app_thread,
     stop_ryu_app_thread,
 )
