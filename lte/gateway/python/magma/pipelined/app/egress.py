@@ -15,4 +15,4 @@ from magma.pipelined.app.base import MagmaController
 from magma.pipelined.app.restart_mixin import RestartMixin
 
 class EgressController(RestartMixin, MagmaController):
-    pass
+    APP_NAME = "egress"

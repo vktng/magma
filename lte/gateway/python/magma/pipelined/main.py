@@ -185,6 +185,7 @@ def main():
         manager.applications.get('VlanLearnController', None),
         manager.applications.get('TunnelLearnController', None),
         manager.applications.get('Classifier', None),
+        # TODO: Add new controllers here
         manager.applications.get('InOutController', None),
         manager.applications.get('NGServiceController', None),
         service.config,

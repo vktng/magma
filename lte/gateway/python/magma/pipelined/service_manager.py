@@ -68,6 +68,9 @@ from magma.pipelined.app.inout import (
     PHYSICAL_TO_LOGICAL,
     InOutController,
 )
+from magma.pipelined.app.ingress import IngressController
+from magma.pipelined.app.middle import MiddleController
+from magma.pipelined.app.egress import EgressController
 from magma.pipelined.app.ipfix import IPFIXController
 from magma.pipelined.app.ipv6_solicitation import IPV6SolicitationController
 from magma.pipelined.app.li_mirror import LIMirrorController
@@ -254,7 +257,10 @@ class _TableManager:
 
     def is_app_enabled(self, app_name: str) -> bool:
         return app_name in self._tables_by_app or \
-            app_name == InOutController.APP_NAME
+            app_name == InOutController.APP_NAME or \
+            app_name == IngressController.APP_NAME or \
+            app_name == MiddleController.APP_NAME or \
+            app_name == EgressController.APP_NAME
 
     def is_ng_app_enabled(self, app_name: str) -> bool:
         return app_name in self._tables_by_app or \
@@ -524,6 +530,24 @@ class ServiceManager:
             App(
                 name=InOutController.APP_NAME,
                 module=InOutController.__module__,
+                type=None,
+                order_priority=0,
+            ),
+            App(
+                name=IngressController.APP_NAME,
+                module=IngressController.__module__,
+                type=None,
+                order_priority=0,
+            ),
+            App(
+                name=MiddleController.APP_NAME,
+                module=MiddleController.__module__,
+                type=None,
+                order_priority=0,
+            ),
+            App(
+                name=EgressController.APP_NAME,
+                module=EgressController.__module__,
                 type=None,
                 order_priority=0,
             ),

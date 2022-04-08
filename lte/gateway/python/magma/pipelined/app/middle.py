@@ -15,4 +15,4 @@ from magma.pipelined.app.base import MagmaController
 from magma.pipelined.app.restart_mixin import RestartMixin
 
 class MiddleController(RestartMixin, MagmaController):
-    pass
+    APP_NAME = "middle"
