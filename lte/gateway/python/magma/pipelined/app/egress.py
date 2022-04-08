@@ -23,6 +23,9 @@ class EgressController(RestartMixin, MagmaController):
     def __init__(self, *args, **kwargs):
         super(EgressController, self).__init__(*args, **kwargs)
         self._egress_tbl_num = self._service_manager.get_table_num(EGRESS)
+        self._clean_restart = kwargs['config']['clean_restart']
+        self._datapath = None
+        self.tbl_num = self._egress_tbl_num
 
     def _get_default_flow_msgs(self, datapath) -> DefaultMsgsMap:
         """
@@ -39,3 +42,9 @@ class EgressController(RestartMixin, MagmaController):
 
     def _get_ue_specific_flow_msgs(self, _):
         return {}
+
+    def initialize_on_connect(self, datapath):
+        self._datapath = datapath
+
+    def cleanup_state(self):
+        pass

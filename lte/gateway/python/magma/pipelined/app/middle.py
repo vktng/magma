@@ -24,6 +24,10 @@ class MiddleController(RestartMixin, MagmaController):
         super(MiddleController, self).__init__(*args, **kwargs)
         self._midle_tbl_num = \
             self._service_manager.get_table_num(PHYSICAL_TO_LOGICAL)
+        self._clean_restart = kwargs['config']['clean_restart']
+        self._datapath = None
+        self.tbl_num = self._midle_tbl_num
+    
     def _get_default_flow_msgs(self, datapath) -> DefaultMsgsMap:
         """
         Gets the default flow msgs for pkt routing
@@ -39,3 +43,9 @@ class MiddleController(RestartMixin, MagmaController):
 
     def _get_ue_specific_flow_msgs(self, _):
         return {}
+
+    def initialize_on_connect(self, datapath):
+        self._datapath = datapath
+
+    def cleanup_state(self):
+        pass
