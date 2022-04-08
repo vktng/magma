@@ -9,6 +9,14 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+TODO:
+ - Is everything used in the new files from inout.py ?
+ - Refactor new files
+    - New superclass for commmon logic
+ - Test splitup
+    - New superclass for commmon logic
+    - 1 test with all 3 services?
+ - Integration tests
 """
 import ipaddress
 import threading
