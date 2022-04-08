@@ -61,9 +61,9 @@ class MiddleController(RestartMixin, MagmaController):
         self._midle_tbl_num = \
             self._service_manager.get_table_num(PHYSICAL_TO_LOGICAL)
         self._egress_tbl_num = self._service_manager.get_table_num(EGRESS)
+        # following fields are only used in Non Nat config
         self._clean_restart = kwargs['config']['clean_restart']
         self._datapath = None
-        # following fields are only used in Non Nat config
         self.tbl_num = self._midle_tbl_num
         self._msg_hub = MessageHub(self.logger)
     
