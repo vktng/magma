@@ -15,7 +15,8 @@ import unittest
 import warnings
 from concurrent.futures import Future
 
-from magma.pipelined.app import inout
+# from magma.pipelined.app import inout
+from magma.pipelined.app import ingress, middle, egress
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.tests.app.start_pipelined import (
     PipelinedController,
@@ -56,7 +57,10 @@ class InOutTest(unittest.TestCase):
         to apps launched by using futures.
         """
         super(InOutTest, cls).setUpClass()
-        inout.get_virtual_iface_mac = mocked_get_virtual_iface_mac
+        # inout.get_virtual_iface_mac = mocked_get_virtual_iface_mac
+        ingress.get_virtual_iface_mac = mocked_get_virtual_iface_mac
+        middle.get_virtual_iface_mac = mocked_get_virtual_iface_mac
+        egress.get_virtual_iface_mac = mocked_get_virtual_iface_mac
         warnings.simplefilter('ignore')
         cls.service_manager = create_service_manager([])
 
@@ -67,14 +71,14 @@ class InOutTest(unittest.TestCase):
         )
         mtr_port_no = BridgeTools.get_ofport(cls.MTR_PORT)
 
-        inout_controller_reference = Future()
+        # inout_controller_reference = Future()
         ingress_controller_reference = Future()
         middle_controller_reference = Future()
         egress_controller_reference = Future()
         testing_controller_reference = Future()
         test_setup = TestSetup(
             apps=[
-                PipelinedController.InOut,
+                # PipelinedController.InOut,
                 PipelinedController.Ingress,
                 PipelinedController.Middle,
                 PipelinedController.Egress,
@@ -82,8 +86,8 @@ class InOutTest(unittest.TestCase):
                 PipelinedController.StartupFlows,
             ],
             references={
-                PipelinedController.InOut:
-                    inout_controller_reference,
+                # PipelinedController.InOut:
+                    # inout_controller_reference,
                 PipelinedController.Ingress:
                     ingress_controller_reference,
                 PipelinedController.Middle:
@@ -115,7 +119,7 @@ class InOutTest(unittest.TestCase):
         )
 
         cls.thread = start_ryu_app_thread(test_setup)
-        cls.inout_controller = inout_controller_reference.result()
+        # cls.inout_controller = inout_controller_reference.result()
         cls.ingress_controller = ingress_controller_reference.result()
         cls.middle_controller = middle_controller_reference.result()
         cls.egress_controller = egress_controller_reference.result()
@@ -127,7 +131,7 @@ class InOutTest(unittest.TestCase):
         BridgeTools.destroy_bridge(cls.BRIDGE)
 
     def testFlowSnapshotMatch(self):
-        fake_inout_setup(self.inout_controller)
+        # fake_inout_setup(self.inout_controller)
         fake_mandatory_controller_setup(self.ingress_controller)
         fake_mandatory_controller_setup(self.middle_controller)
         fake_mandatory_controller_setup(self.egress_controller)
