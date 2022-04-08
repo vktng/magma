@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from ryu.lib.packet import ether_types
 from magma.pipelined.openflow.messages import MessageHub, MsgChannel
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
@@ -22,7 +23,7 @@ from magma.pipelined.openflow.registers import (
     # PASSTHROUGH_REG_VAL,
     # PROXY_TAG_TO_PROXY,
     # REG_ZERO_VAL,
-    # TUN_PORT_REG,
+    TUN_PORT_REG,
     Direction,
     # load_direction,
 )
@@ -278,3 +279,105 @@ class EgressController(RestartMixin, MagmaController):
 
     def finish_init(self, _):
         pass
+
+    def _get_proxy_flow_msgs(self, dp):
+        """
+        Install egress flows
+        Args:
+            dp datapath
+            table_no table to install flow
+            out_port specify egress port, if None reg value is used
+            priority flow priority
+            direction packet direction.
+        """
+        if self.config.he_proxy_port <= 0:
+            return []
+
+        parser = dp.ofproto_parser
+        match = MagmaMatch(proxy_tag=PROXY_TAG_TO_PROXY)
+        actions = [
+            parser.NXActionRegLoad2(
+                dst='eth_dst',
+                value=self.config.he_proxy_eth_mac,
+            ),
+        ]
+        return [
+            flows.get_add_output_flow_msg(
+                dp, self._egress_tbl_num, match,
+                priority=flows.UE_FLOW_PRIORITY, actions=actions,
+                output_port=self.config.he_proxy_port,
+            ),
+        ]
+
+
+# TODO: Why is this not in the class?    
+def _get_vlan_egress_flow_msgs(
+    dp, table_no, eth_type, ip, out_port=None,
+    priority=0, direction=Direction.IN, dst_mac=None,
+):
+    """
+    Install egress flows
+    Args:
+        dp datapath
+        table_no table to install flow
+        out_port specify egress port, if None reg value is used
+        priority flow priority
+        direction packet direction.
+    """
+    msgs = []
+    if out_port:
+        output_reg = None
+    else:
+        output_reg = TUN_PORT_REG
+
+    # Pass non vlan packet as it is.
+    # TODO: add support to match IPv6 address
+    if ip:
+        match = MagmaMatch(
+            direction=direction,
+            eth_type=eth_type,
+            vlan_vid=(0x0000, 0x1000),
+            ipv4_dst=ip,
+        )
+    else:
+        match = MagmaMatch(
+            direction=direction,
+            eth_type=eth_type,
+            vlan_vid=(0x0000, 0x1000),
+        )
+    actions = []
+    if dst_mac:
+        actions.append(dp.ofproto_parser.NXActionRegLoad2(dst='eth_dst', value=dst_mac))
+
+    msgs.append(
+        flows.get_add_output_flow_msg(
+            dp, table_no, match, actions,
+            priority=priority, output_reg=output_reg, output_port=out_port,
+        ),
+    )
+
+    # remove vlan header for out_port.
+    if ip:
+        match = MagmaMatch(
+            direction=direction,
+            eth_type=eth_type,
+            vlan_vid=(0x1000, 0x1000),
+            ipv4_dst=ip,
+        )
+    else:
+        match = MagmaMatch(
+            direction=direction,
+            eth_type=eth_type,
+            vlan_vid=(0x1000, 0x1000),
+        )
+    actions = [dp.ofproto_parser.OFPActionPopVlan()]
+    if dst_mac:
+        actions.append(dp.ofproto_parser.NXActionRegLoad2(dst='eth_dst', value=dst_mac))
+
+    msgs.append(
+        flows.get_add_output_flow_msg(
+            dp, table_no, match, actions,
+            priority=priority, output_reg=output_reg, output_port=out_port,
+        ),
+    )
+    return msgs

@@ -51,6 +51,11 @@ class IngressController(RestartMixin, MagmaController):
         super(IngressController, self).__init__(*args, **kwargs)
         self.config = self._get_config(kwargs['config'])
         self._li_port = None
+        # TODO Alex do we want this to be cofigurable from swagger?
+        if self.config.mtr_ip:
+            self._mtr_service_enabled = True
+        else:
+            self._mtr_service_enabled = False
         self.logger.info("ingress config: %s", self.config)
         self._ingress_tbl_num = self._service_manager.get_table_num(INGRESS)
         # following fields are only used in Non Nat config

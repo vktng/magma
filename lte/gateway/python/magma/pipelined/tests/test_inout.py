@@ -39,7 +39,7 @@ def mocked_get_virtual_iface_mac(iface):
     if iface == 'testing_br':
         return 'bb:fa:b2:76:37:5d'
 
-
+'''
 class InOutTest(unittest.TestCase):
     BRIDGE = 'testing_br'
     IFACE = 'testing_br'
@@ -158,17 +158,29 @@ class InOutTestLTE(unittest.TestCase):
         warnings.simplefilter('ignore')
         cls.service_manager = create_service_manager([])
 
-        inout_controller_reference = Future()
+        # inout_controller_reference = Future()
+        ingress_controller_reference = Future()
+        middle_controller_reference = Future()
+        egress_controller_reference = Future()
         testing_controller_reference = Future()
         test_setup = TestSetup(
             apps=[
-                PipelinedController.InOut,
+                # PipelinedController.InOut,
+                PipelinedController.Ingress,
+                PipelinedController.Middle,
+                PipelinedController.Egress,
                 PipelinedController.Testing,
                 PipelinedController.StartupFlows,
             ],
             references={
-                PipelinedController.InOut:
-                    inout_controller_reference,
+                # PipelinedController.InOut:
+                #     inout_controller_reference,
+                PipelinedController.Ingress:
+                    ingress_controller_reference,
+                PipelinedController.Middle:
+                    middle_controller_reference,
+                PipelinedController.Egress:
+                    egress_controller_reference,
                 PipelinedController.Testing:
                     testing_controller_reference,
                 PipelinedController.StartupFlows:
@@ -195,7 +207,10 @@ class InOutTestLTE(unittest.TestCase):
         BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
 
         cls.thread = start_ryu_app_thread(test_setup)
-        cls.inout_controller = inout_controller_reference.result()
+        # cls.inout_controller = inout_controller_reference.result()
+        cls.ingress_controller = ingress_controller_reference.result()
+        cls.middle_controller = middle_controller_reference.result()
+        cls.egress_controller = egress_controller_reference.result()
         cls.testing_controller = testing_controller_reference.result()
 
     @classmethod
@@ -204,10 +219,14 @@ class InOutTestLTE(unittest.TestCase):
         BridgeTools.destroy_bridge(cls.BRIDGE)
 
     def testFlowSnapshotMatch(self):
-        fake_inout_setup(self.inout_controller)
+        # fake_inout_setup(self.inout_controller)
+        fake_mandatory_controller_setup(self.ingress_controller)
+        fake_mandatory_controller_setup(self.middle_controller)
+        fake_mandatory_controller_setup(self.egress_controller)
         assert_bridge_snapshot_match(self, self.BRIDGE, self.service_manager)
 
 
+'''
 class InOutTestXWF(unittest.TestCase):
     BRIDGE = 'testing_br'
     IFACE = 'testing_br'
