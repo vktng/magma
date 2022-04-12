@@ -234,6 +234,7 @@ class InOutNonNatTest(unittest.TestCase):
 
     def setUp(self):
         clear_gw_info_map()
+    '''        
 
     def testFlowSnapshotMatch(self):
         cls = self.__class__
@@ -281,13 +282,16 @@ class InOutNonNatTest(unittest.TestCase):
         with snapshot_verifier_ingress:
             pass
         assert_GW_mac(self, vlan, 'b2:a0:cc:85:80:7a')
-'''
+    '''        
     def testFlowVlanSnapshotMatch(self):
         cls = self.__class__
         vlan = "11"
         self.setUpNetworkAndController(vlan)
         # wait for atleast one iteration of the ARP probe.
-        fake_inout_setup(cls.inout_controller)
+        # fake_inout_setup(cls.inout_controller)
+        fake_mandatory_controller_setup(cls.ingress_controller)
+        fake_mandatory_controller_setup(cls.middle_controller)
+        fake_mandatory_controller_setup(cls.egress_controller)
 
         ip_addr = ipaddress.ip_address("10.200.11.211")
         mocked_set_mobilityd_gw_info(
@@ -306,13 +310,14 @@ class InOutNonNatTest(unittest.TestCase):
             self, self.BRIDGE,
             self.service_manager,
             max_sleep_time=40,
-            datapath=cls.inout_controller._datapath,
+            datapath=cls.ingress_controller._datapath,
         )
 
         with snapshot_verifier:
             pass
         assert_GW_mac(self, vlan, 'b2:a0:cc:85:80:11')
 
+'''
     def testFlowVlanSnapshotMatch2(self):
         cls = self.__class__
         vlan1 = "21"
