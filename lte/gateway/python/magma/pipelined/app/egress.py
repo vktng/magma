@@ -11,23 +11,33 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from ryu.lib import hub
-from ryu.lib.packet import ether_types
-from magma.pipelined.openflow.messages import MessageHub, MsgChannel
-from magma.pipelined.openflow import flows
-from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.utils import get_virtual_iface_mac
+import ipaddress
+import threading
 from collections import namedtuple
+
+from lte.protos.mobilityd_pb2 import IPAddress
 from magma.pipelined.app.base import MagmaController
 from magma.pipelined.app.restart_mixin import DefaultMsgsMap, RestartMixin
-from magma.pipelined.openflow.registers import (
-    # PASSTHROUGH_REG_VAL,
-    # PROXY_TAG_TO_PROXY,
-    # REG_ZERO_VAL,
+from magma.pipelined.mobilityd_client import (
+    get_mobilityd_gw_info,
+    set_mobilityd_gw_info,
+)
+from magma.pipelined.openflow import flows
+from magma.pipelined.openflow.magma_match import MagmaMatch
+from magma.pipelined.openflow.messages import MessageHub, MsgChannel
+from magma.pipelined.openflow.registers import (  # PASSTHROUGH_REG_VAL,; PROXY_TAG_TO_PROXY,; REG_ZERO_VAL,; load_direction,
     TUN_PORT_REG,
     Direction,
-    # load_direction,
 )
+from magma.pipelined.utils import get_virtual_iface_mac
+from ryu.lib import hub
+from ryu.lib.packet import ether_types
+from scapy.arch import get_if_addr, get_if_hwaddr
+from scapy.data import ETH_P_ALL, ETHER_BROADCAST
+from scapy.error import Scapy_Exception
+from scapy.layers.inet6 import getmacbyip6
+from scapy.layers.l2 import ARP, Dot1Q, Ether
+from scapy.sendrecv import srp1
 
 EGRESS = "egress"
 
@@ -355,7 +365,134 @@ class EgressController(RestartMixin, MagmaController):
         self._gw_mac_monitor = hub.spawn(self._monitor_and_update)
 
         threading.Event().wait(1)
+    
+    def _monitor_and_update(self):
+        while self._gw_mac_monitor_on:
+            gw_info_list = get_mobilityd_gw_info()
+            for gw_info in gw_info_list:
+                if gw_info and gw_info.ip:
+                    latest_mac_addr = self._get_gw_mac_address(gw_info.ip, gw_info.vlan)
+                    if latest_mac_addr is None or latest_mac_addr == "":
+                        latest_mac_addr = gw_info.mac
+                    self.logger.debug("mac [%s] for vlan %s", latest_mac_addr, gw_info.vlan)
+                    msgs = self._get_default_egress_flow_msgs(
+                        self._datapath,
+                        latest_mac_addr,
+                        gw_info.vlan,
+                        ipv6=(gw_info.ip.version == IPAddress.IPV6),
+                    )
 
+                    chan = self._msg_hub.send(msgs, self._datapath)
+                    self._wait_for_responses(chan, len(msgs))
+
+                    if latest_mac_addr and latest_mac_addr != "":
+                        set_mobilityd_gw_info(
+                            gw_info.ip,
+                            latest_mac_addr,
+                            gw_info.vlan,
+                        )
+                else:
+                    self.logger.warning("No default GW found.")
+
+            hub.sleep(self.config.non_nat_gw_probe_frequency)
+
+    def _get_gw_mac_address(self, ip: IPAddress, vlan: str = "") -> str:
+        if ip.version == IPAddress.IPV4:
+            return self._get_gw_mac_address_v4(ip, vlan)
+        if ip.version == IPAddress.IPV6:
+            if vlan == "NO_VLAN":
+                return self._get_gw_mac_address_v6(ip)
+            else:
+                gw_ip = ipaddress.ip_address(ip.address)
+                self.logger.error("Not supported: GW IPv6: %s over vlan %d", str(gw_ip), vlan)
+                return None
+    
+    def _get_gw_mac_address_v4(self, ip: IPAddress, vlan: str = "") -> str:
+        try:
+            gw_ip = ipaddress.ip_address(ip.address)
+            self.logger.debug(
+                "sending arp via egress: %s",
+                self.config.non_nat_arp_egress_port,
+            )
+            eth_mac_src = get_if_hwaddr(self.config.non_nat_arp_egress_port)
+            psrc = "0.0.0.0"
+            egress_port_ip = get_if_addr(self.config.non_nat_arp_egress_port)
+            if egress_port_ip:
+                psrc = egress_port_ip
+
+            pkt = Ether(dst=ETHER_BROADCAST, src=eth_mac_src)
+            if vlan.isdigit():
+                pkt /= Dot1Q(vlan=int(vlan))
+            pkt /= ARP(op="who-has", pdst=gw_ip, hwsrc=eth_mac_src, psrc=psrc)
+            self.logger.debug("ARP Req pkt %s", pkt.show(dump=True))
+
+            res = srp1(
+                pkt,
+                type=ETH_P_ALL,
+                iface=self.config.non_nat_arp_egress_port,
+                timeout=1,
+                verbose=0,
+                nofilter=1,
+                promisc=0,
+            )
+
+            if res is not None:
+                self.logger.debug("ARP Res pkt %s", res.show(dump=True))
+                if str(res[ARP].psrc) != str(gw_ip):
+                    self.logger.warning(
+                        "Unexpected IP in ARP response. expected: %s pkt: %s",
+                        str(gw_ip),
+                        res.show(dump=True),
+                    )
+                    return ""
+                if vlan.isdigit():
+                    if Dot1Q in res and str(res[Dot1Q].vlan) == vlan:
+                        mac = res[ARP].hwsrc
+                    else:
+                        self.logger.warning(
+                            "Unexpected vlan in ARP response. expected: %s pkt: %s",
+                            vlan,
+                            res.show(dump=True),
+                        )
+                        return ""
+                else:
+                    mac = res[ARP].hwsrc
+                return mac
+            else:
+                self.logger.debug("Got Null response")
+                return ""
+
+        except Scapy_Exception as ex:
+            self.logger.warning("Error in probing Mac address: err %s", ex)
+            return ""
+        except ValueError:
+            self.logger.warning(
+                "Invalid GW Ip address: [%s] or vlan %s",
+                str(ip), vlan,
+            )
+            return ""
+
+    def _get_gw_mac_address_v6(self, ip: IPAddress) -> str:
+        try:
+            gw_ip = ipaddress.ip_address(ip.address)
+            mac = getmacbyip6(str(gw_ip))
+            self.logger.debug("Got mac %s for IP: %s", mac, gw_ip)
+            return mac
+
+        except Scapy_Exception as ex:
+            self.logger.warning("Error in probing Mac address: err %s", ex)
+            return ""
+        except ValueError:
+            self.logger.warning(
+                "Invalid GW Ip address: [%s]",
+                str(ip),
+            )
+            return ""
+    
+    def _stop_gw_mac_monitor(self):
+        if self._gw_mac_monitor:
+            self._gw_mac_monitor_on = False
+            self._gw_mac_monitor.wait()
 
 
 # TODO: Why is this not in the class?    

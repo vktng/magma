@@ -11,23 +11,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from ryu.lib import hub
-from magma.pipelined.openflow.messages import MessageHub, MsgChannel
-from ryu.lib.packet import ether_types
 from collections import namedtuple
-from magma.pipelined.utils import get_virtual_iface_mac
-from magma.pipelined.openflow import flows
-from magma.pipelined.openflow.magma_match import MagmaMatch
+
 from magma.pipelined.app.base import MagmaController
 from magma.pipelined.app.restart_mixin import DefaultMsgsMap, RestartMixin
-from magma.pipelined.openflow.registers import (
+from magma.pipelined.openflow import flows
+from magma.pipelined.openflow.magma_match import MagmaMatch
+from magma.pipelined.openflow.messages import MessageHub, MsgChannel
+from magma.pipelined.openflow.registers import (  # PROXY_TAG_TO_PROXY,; REG_ZERO_VAL,; TUN_PORT_REG,; load_direction,
     PASSTHROUGH_REG_VAL,
-    # PROXY_TAG_TO_PROXY,
-    # REG_ZERO_VAL,
-    # TUN_PORT_REG,
     Direction,
-    # load_direction,
 )
+from magma.pipelined.utils import get_virtual_iface_mac
+from ryu.lib import hub
+from ryu.lib.packet import ether_types
 
 EGRESS = "egress"
 PHYSICAL_TO_LOGICAL = "middle"
@@ -66,9 +63,7 @@ class MiddleController(RestartMixin, MagmaController):
         self._clean_restart = kwargs['config']['clean_restart']
         self._datapath = None
         self.tbl_num = self._midle_tbl_num
-        self._gw_mac_monitor = None
         self._msg_hub = MessageHub(self.logger)
-        self._gw_mac_monitor_on = False
     
     def _get_default_flow_msgs(self, datapath) -> DefaultMsgsMap:
         """
@@ -88,7 +83,6 @@ class MiddleController(RestartMixin, MagmaController):
 
     def initialize_on_connect(self, datapath):
         self._datapath = datapath
-        self._setup_non_nat_monitoring()
         # TODO possibly investigate stateless XWF(no sessiond)
         if self.config.setup_type == 'XWF':
             self.delete_all_flows(datapath)
@@ -249,33 +243,6 @@ class MiddleController(RestartMixin, MagmaController):
 
     def finish_init(self, _):
         pass
-    
-    def _setup_non_nat_monitoring(self):
-        """
-        Setup egress flow to forward traffic to internet GW.
-        Start a thread to figure out MAC address of uplink NAT gw.
-
-        """
-        if self._gw_mac_monitor is not None:
-            # No need to multiple probes here.
-            return
-        if self.config.enable_nat is True:
-            self.logger.info("Nat is on")
-            return
-        elif self.config.setup_type != 'LTE':
-            self.logger.info("No GW MAC probe for %s", self.config.setup_type)
-            return
-        else:
-            self.logger.info(
-                "Non nat conf: egress port: %s, uplink: %s",
-                self.config.non_nat_arp_egress_port,
-                self.config.uplink_port,
-            )
-
-        self._gw_mac_monitor_on = True
-        self._gw_mac_monitor = hub.spawn(self._monitor_and_update)
-
-        threading.Event().wait(1)
 
 
 # TODO: Why is this not in the class?    
