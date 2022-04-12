@@ -316,7 +316,6 @@ class InOutNonNatTest(unittest.TestCase):
             pass
         assert_GW_mac(self, vlan, 'b2:a0:cc:85:80:11')
 
-    '''        
     def testFlowVlanSnapshotMatch2(self):
         cls = self.__class__
         vlan1 = "21"
@@ -360,7 +359,6 @@ class InOutNonNatTest(unittest.TestCase):
         with snapshot_verifier:
             pass
 
-    '''
     def testFlowVlanSnapshotMatch_static1(self):
         cls = self.__class__
         # setup network on unused vlan.
@@ -368,7 +366,10 @@ class InOutNonNatTest(unittest.TestCase):
         self.setUpNetworkAndController(vlan1)
         # statically configured config
         vlan2 = "22"
-        fake_inout_setup(cls.inout_controller)
+        # fake_inout_setup(cls.inout_controller)
+        fake_mandatory_controller_setup(cls.ingress_controller)
+        fake_mandatory_controller_setup(cls.middle_controller)
+        fake_mandatory_controller_setup(cls.egress_controller)
 
         ip_addr = ipaddress.ip_address("10.200.21.211")
         mocked_set_mobilityd_gw_info(
@@ -396,7 +397,7 @@ class InOutNonNatTest(unittest.TestCase):
             self, self.BRIDGE,
             self.service_manager,
             max_sleep_time=20,
-            datapath=cls.inout_controller._datapath,
+            datapath=cls.ingress_controller._datapath,
         )
 
         with snapshot_verifier:
@@ -409,7 +410,10 @@ class InOutNonNatTest(unittest.TestCase):
         # setup network on unused vlan.
         self.setUpNetworkAndController("34")
         # statically configured config
-        fake_inout_setup(cls.inout_controller)
+        # fake_inout_setup(cls.inout_controller)
+        fake_mandatory_controller_setup(cls.ingress_controller)
+        fake_mandatory_controller_setup(cls.middle_controller)
+        fake_mandatory_controller_setup(cls.egress_controller)
 
         vlan1 = "31"
         ip_addr = ipaddress.ip_address("10.200.21.100")
@@ -453,12 +457,15 @@ class InOutNonNatTest(unittest.TestCase):
             self, self.BRIDGE,
             self.service_manager,
             max_sleep_time=20,
-            datapath=cls.inout_controller._datapath,
+            datapath=cls.ingress_controller._datapath,
             try_snapshot=True,
         )
 
         with snapshot_verifier:
             pass
+    '''        
+    
+    '''
 
 
 class InOutTestNonNATBasicFlows(unittest.TestCase):
