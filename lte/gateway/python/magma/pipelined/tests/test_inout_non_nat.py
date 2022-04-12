@@ -233,8 +233,7 @@ class InOutNonNatTest(unittest.TestCase):
         clear_gw_info_map()
 
     def setUp(self):
-        clear_gw_info_map()
-    '''        
+        clear_gw_info_map()  
 
     def testFlowSnapshotMatch(self):
         cls = self.__class__
@@ -259,27 +258,13 @@ class InOutNonNatTest(unittest.TestCase):
         )
         check_GW_rec(vlan)
 
-        # snapshot_verifier = SnapshotVerifier(
-        #     self, self.BRIDGE,
-        #     self.service_manager,
-        #     max_sleep_time=40,
-        #     datapath=cls.inout_controller._datapath,
-        # )
-        snapshot_verifier_ingress = SnapshotVerifier(
+        snapshot_verifier = SnapshotVerifier(
             self, self.BRIDGE,
             self.service_manager,
             max_sleep_time=40,
-            datapath=cls.egress_controller._datapath,
+            datapath=cls.ingress_controller._datapath,
         )
-        # snapshot_verifier_middle = SnapshotVerifier(
-        #     self, self.BRIDGE,
-        #     self.service_manager,
-        #     max_sleep_time=40,
-        #     datapath=cls.middle_controller._datapath,
-        # )
-        # TODO: Use this?
-        # assert_bridge_snapshot_match(self, self.BRIDGE, self.service_manager)
-        with snapshot_verifier_ingress:
+        with snapshot_verifier:
             pass
         assert_GW_mac(self, vlan, 'b2:a0:cc:85:80:7a')
     def testFlowVlanSnapshotMatch(self):
@@ -462,10 +447,7 @@ class InOutNonNatTest(unittest.TestCase):
         )
 
         with snapshot_verifier:
-            pass
-    '''        
-    
-    
+            pass     
 
 
 class InOutTestNonNATBasicFlows(unittest.TestCase):
@@ -564,7 +546,7 @@ class InOutTestNonNATBasicFlows(unittest.TestCase):
 
         with snapshot_verifier:
             pass
-    '''
+  
 
 ipv6_mac_table = {}
 
@@ -596,25 +578,37 @@ class InOutTestNonNATBasicFlowsIPv6(unittest.TestCase):
         launch the ryu apps for testing pipelined. Gets the references
         to apps launched by using futures.
         """
-        inout.getmacbyip6 = mocked_getmacbyip6
-        inout.get_mobilityd_gw_info = mocked_get_mobilityd_gw_info
-        inout.set_mobilityd_gw_info = mocked_set_mobilityd_gw_info
+        egress.getmacbyip6 = mocked_getmacbyip6
+        egress.get_mobilityd_gw_info = mocked_get_mobilityd_gw_info
+        egress.set_mobilityd_gw_info = mocked_set_mobilityd_gw_info
 
         super(InOutTestNonNATBasicFlowsIPv6, cls).setUpClass()
         warnings.simplefilter('ignore')
         cls.service_manager = create_service_manager([])
 
-        inout_controller_reference = Future()
+        # inout_controller_reference = Future()
+        ingress_controller_reference = Future()
+        middle_controller_reference = Future()
+        egress_controller_reference = Future()
         testing_controller_reference = Future()
         test_setup = TestSetup(
             apps=[
-                PipelinedController.InOut,
+                # PipelinedController.InOut,
+                PipelinedController.Ingress,
+                PipelinedController.Middle,
+                PipelinedController.Egress,
                 PipelinedController.Testing,
                 PipelinedController.StartupFlows,
             ],
             references={
-                PipelinedController.InOut:
-                    inout_controller_reference,
+                # PipelinedController.InOut:
+                #     inout_controller_reference,
+                PipelinedController.Ingress:
+                    ingress_controller_reference,
+                PipelinedController.Middle:
+                    middle_controller_reference,
+                PipelinedController.Egress:
+                    egress_controller_reference,
                 PipelinedController.Testing:
                     testing_controller_reference,
                 PipelinedController.StartupFlows:
@@ -640,12 +634,16 @@ class InOutTestNonNATBasicFlowsIPv6(unittest.TestCase):
         BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
 
         cls.thread = start_ryu_app_thread(test_setup)
-        cls.inout_controller = inout_controller_reference.result()
+        # cls.inout_controller = inout_controller_reference.result()
+        cls.ingress_controller = ingress_controller_reference.result()
+        cls.middle_controller = middle_controller_reference.result()
+        cls.egress_controller = egress_controller_reference.result()
         cls.testing_controller = testing_controller_reference.result()
 
     @classmethod
     def tearDownClass(cls):
-        cls.inout_controller._stop_gw_mac_monitor()
+        # cls.inout_controller._stop_gw_mac_monitor()
+        cls.egress_controller._stop_gw_mac_monitor()
         stop_ryu_app_thread(cls.thread)
         BridgeTools.destroy_bridge(cls.BRIDGE)
         time.sleep(1)
@@ -665,17 +663,19 @@ class InOutTestNonNATBasicFlowsIPv6(unittest.TestCase):
             ),
             "", vlan,
         )
-        fake_inout_setup(self.inout_controller)
+        # fake_inout_setup(self.inout_controller)
+        fake_mandatory_controller_setup(self.ingress_controller)
+        fake_mandatory_controller_setup(self.middle_controller)
+        fake_mandatory_controller_setup(self.egress_controller)
 
         snapshot_verifier = SnapshotVerifier(
             self,
             self.BRIDGE,
             self.service_manager,
             max_sleep_time=20,
-            datapath=InOutTestNonNATBasicFlowsIPv6.inout_controller._datapath,
+            datapath=InOutTestNonNATBasicFlowsIPv6.ingress_controller._datapath,
         )
 
         with snapshot_verifier:
             pass
         assert_GW_mac(self, vlan, mac_addr1)
-'''
