@@ -465,7 +465,7 @@ class InOutNonNatTest(unittest.TestCase):
             pass
     '''        
     
-    '''
+    
 
 
 class InOutTestNonNATBasicFlows(unittest.TestCase):
@@ -487,17 +487,29 @@ class InOutTestNonNATBasicFlows(unittest.TestCase):
         warnings.simplefilter('ignore')
         cls.service_manager = create_service_manager([])
 
-        inout_controller_reference = Future()
+        # inout_controller_reference = Future()
+        ingress_controller_reference = Future()
+        middle_controller_reference = Future()
+        egress_controller_reference = Future()
         testing_controller_reference = Future()
         test_setup = TestSetup(
             apps=[
-                PipelinedController.InOut,
+                # PipelinedController.InOut,
+                PipelinedController.Ingress,
+                PipelinedController.Middle,
+                PipelinedController.Egress,
                 PipelinedController.Testing,
                 PipelinedController.StartupFlows,
             ],
             references={
-                PipelinedController.InOut:
-                    inout_controller_reference,
+                # PipelinedController.InOut:
+                #     inout_controller_reference,
+                PipelinedController.Ingress:
+                    ingress_controller_reference,
+                PipelinedController.Middle:
+                    middle_controller_reference,
+                PipelinedController.Egress:
+                    egress_controller_reference,
                 PipelinedController.Testing:
                     testing_controller_reference,
                 PipelinedController.StartupFlows:
@@ -521,12 +533,16 @@ class InOutTestNonNATBasicFlows(unittest.TestCase):
         BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
 
         cls.thread = start_ryu_app_thread(test_setup)
-        cls.inout_controller = inout_controller_reference.result()
+        # cls.inout_controller = inout_controller_reference.result()
+        cls.ingress_controller = ingress_controller_reference.result()
+        cls.middle_controller = middle_controller_reference.result()
+        cls.egress_controller = egress_controller_reference.result()
         cls.testing_controller = testing_controller_reference.result()
 
     @classmethod
     def tearDownClass(cls):
-        cls.inout_controller._stop_gw_mac_monitor()
+        # cls.inout_controller._stop_gw_mac_monitor()
+        cls.egress_controller._stop_gw_mac_monitor()
         stop_ryu_app_thread(cls.thread)
         BridgeTools.destroy_bridge(cls.BRIDGE)
 
@@ -534,18 +550,21 @@ class InOutTestNonNATBasicFlows(unittest.TestCase):
         clear_gw_info_map()
 
     def testFlowSnapshotMatch(self):
-        fake_inout_setup(self.inout_controller)
+        # fake_inout_setup(self.inout_controller)
+        fake_mandatory_controller_setup(self.ingress_controller)
+        fake_mandatory_controller_setup(self.middle_controller)
+        fake_mandatory_controller_setup(self.egress_controller)
         snapshot_verifier = SnapshotVerifier(
             self,
             self.BRIDGE,
             self.service_manager,
             max_sleep_time=20,
-            datapath=InOutTestNonNATBasicFlows.inout_controller._datapath,
+            datapath=InOutTestNonNATBasicFlows.ingress_controller._datapath,
         )
 
         with snapshot_verifier:
             pass
-
+    '''
 
 ipv6_mac_table = {}
 
