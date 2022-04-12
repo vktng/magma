@@ -25,6 +25,8 @@ from magma.pipelined.openflow.registers import (  # PROXY_TAG_TO_PROXY,; TUN_POR
     load_direction,
 )
 from magma.pipelined.utils import get_virtual_iface_mac
+from ryu.controller import ofp_event
+from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.lib import hub
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 
@@ -319,3 +321,11 @@ class IngressController(RestartMixin, MagmaController):
 
     def finish_init(self, _):
         pass
+    
+    @set_ev_cls(ofp_event.EventOFPBarrierReply, MAIN_DISPATCHER)
+    def _handle_barrier(self, ev):
+        self._msg_hub.handle_barrier(ev)
+
+    @set_ev_cls(ofp_event.EventOFPErrorMsg, MAIN_DISPATCHER)
+    def _handle_error(self, ev):
+        self._msg_hub.handle_error(ev)

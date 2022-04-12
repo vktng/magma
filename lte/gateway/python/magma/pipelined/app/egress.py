@@ -30,6 +30,8 @@ from magma.pipelined.openflow.registers import (  # PASSTHROUGH_REG_VAL,; PROXY_
     Direction,
 )
 from magma.pipelined.utils import get_virtual_iface_mac
+from ryu.controller import ofp_event
+from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.lib import hub
 from ryu.lib.packet import ether_types
 from scapy.arch import get_if_addr, get_if_hwaddr
@@ -493,6 +495,14 @@ class EgressController(RestartMixin, MagmaController):
         if self._gw_mac_monitor:
             self._gw_mac_monitor_on = False
             self._gw_mac_monitor.wait()
+    
+    @set_ev_cls(ofp_event.EventOFPBarrierReply, MAIN_DISPATCHER)
+    def _handle_barrier(self, ev):
+        self._msg_hub.handle_barrier(ev)
+
+    @set_ev_cls(ofp_event.EventOFPErrorMsg, MAIN_DISPATCHER)
+    def _handle_error(self, ev):
+        self._msg_hub.handle_error(ev)
 
 
 # TODO: Why is this not in the class?    
@@ -566,3 +576,4 @@ def _get_vlan_egress_flow_msgs(
         ),
     )
     return msgs
+
