@@ -51,10 +51,10 @@ class EgressController(RestartMixin, MagmaController):
     EgressConfig = namedtuple(
         'EgressConfig',
         [
-            'gtp_port', 'uplink_port', 'mtr_ip', 'mtr_port', 'li_port_name',
+            'gtp_port', 'uplink_port', 'li_port_name',
             'enable_nat', 'non_nat_gw_probe_frequency', 'non_nat_arp_egress_port',
             'setup_type', 'uplink_gw_mac', 'he_proxy_port', 'he_proxy_eth_mac',
-            'mtr_mac', 'virtual_mac',
+            'virtual_mac',
         ],
     )
 
@@ -220,8 +220,6 @@ class EgressController(RestartMixin, MagmaController):
     
     # TODO: Is everything needed?
     def _get_config(self, config_dict):
-        mtr_ip = None
-        mtr_port = None
         li_port_name = None
         port_no = config_dict.get('uplink_port', None)
         setup_type = config_dict.get('setup_type', None)
@@ -235,16 +233,6 @@ class EgressController(RestartMixin, MagmaController):
         except DatapathLookupError:
             # ignore it
             self.logger.debug("could not parse proxy port config")
-
-        if 'mtr_ip' in config_dict and 'mtr_interface' in config_dict and 'ovs_mtr_port_number' in config_dict:
-            self._mtr_service_enabled = True
-            mtr_ip = config_dict['mtr_ip']
-            mtr_port = config_dict['ovs_mtr_port_number']
-            mtr_mac = get_virtual_iface_mac(config_dict['mtr_interface'])
-        else:
-            mtr_ip = None
-            mtr_mac = None
-            mtr_port = None
 
         if 'li_local_iface' in config_dict:
             li_port_name = config_dict['li_local_iface']
@@ -283,8 +271,6 @@ class EgressController(RestartMixin, MagmaController):
         return self.EgressConfig(
             gtp_port=config_dict['ovs_gtp_port_number'],
             uplink_port=port_no,
-            mtr_ip=mtr_ip,
-            mtr_port=mtr_port,
             li_port_name=li_port_name,
             enable_nat=enable_nat,
             non_nat_gw_probe_frequency=non_nat_gw_probe_freq,
@@ -293,7 +279,6 @@ class EgressController(RestartMixin, MagmaController):
             uplink_gw_mac=uplink_gw_mac,
             he_proxy_port=he_proxy_port,
             he_proxy_eth_mac=he_proxy_eth_mac,
-            mtr_mac=mtr_mac,
             virtual_mac=virtual_mac,
         )
 
