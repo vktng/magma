@@ -20,6 +20,7 @@ cc_library(
     hdrs = ["GRPCReceiver.hpp"],
     deps = [
         "//orc8r/gateway/c/common/logging",
-        "@com_github_grpc_grpc//:grpc++",
+        # "@com_github_grpc_grpc//:grpc++",
+        "@system_libraries//:grpc_plus_plus",
     ],
 )

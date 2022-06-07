@@ -28,7 +28,9 @@ cc_library(
     hdrs = ["MConfigLoader.hpp"],
     deps = [
         "//orc8r/gateway/c/common/logging",
-        "@com_google_protobuf//:protobuf",
+        # "@system_libraries//:proto_source",
+        "@system_libraries//:proto_static",
+        # "@com_google_protobuf//:protobuf",
         "@github_nlohmann_json//:json",
     ],
 )

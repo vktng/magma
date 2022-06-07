@@ -1127,7 +1127,11 @@ cc_binary(
     srcs = [
         "oai/oai_mme/oai_mme.c",
     ],
-    linkstatic = False,
+    # Search for dynamic libraries in the same directory as the binary.
+    # Needed when binary and dynamic libraries are copied.
+    # linkopts = ["-static"],
+    # linkshared = True,
+    linkstatic = True,
     deps = [
         ":core",
     ],

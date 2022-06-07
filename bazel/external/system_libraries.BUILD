@@ -53,6 +53,53 @@ cc_library(
 )
 
 cc_library(
+    name = "grpc_plus_plus",
+    srcs = ["usr/local/lib/libgrpc++.so.1.15.0"],
+    linkopts = [
+        "-lpthread",
+        "-lm",
+        "-lstdc++",
+    ],
+)
+
+cc_library(
+    name = "proto_source",
+    srcs = glob(include = [
+        "usr/include/google/protobuf/**/*.c",
+        "usr/include/google/protobuf/**/*.cpp",
+        "usr/include/google/protobuf/**/*.h",
+        "usr/include/google/protobuf/**/*.hpp",
+    ]),
+)
+
+cc_library(
+    name = "glog",
+    srcs = ["usr/lib/x86_64-linux-gnu/libglog.so.0.0.0"],
+    linkopts = [
+        "-lpthread",
+        "-lm",
+        "-lstdc++",
+    ],
+)
+
+cc_library(
+    name = "proto_static",
+    srcs = [
+        # "tmp/libdescriptor_proto.upb.so",
+        # "usr/lib/x86_64-linux-gnu/libprotobuf.a",
+        # "usr/lib/x86_64-linux-gnu/libprotobuf-lite.a",
+        "usr/lib/x86_64-linux-gnu/libprotobuf.so.17.0.0",
+        "usr/lib/x86_64-linux-gnu/libprotoc.so.17.0.0",
+        "usr/lib/x86_64-linux-gnu/libprotobuf-lite.so.17.0.0",
+    ],
+    linkopts = [
+        "-lpthread",
+        "-lm",
+        "-lstdc++",
+    ],
+)
+
+cc_library(
     name = "libpcap",
     linkopts = ["-lpcap"],
 )

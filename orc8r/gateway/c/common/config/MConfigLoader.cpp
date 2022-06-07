@@ -17,6 +17,7 @@
 #include <glog/logging.h>
 #include <google/protobuf/stubs/status.h>    // for Status
 #include <google/protobuf/util/json_util.h>  // for JsonStringToMessage
+#include <cstdio>
 #include <nlohmann/json.hpp>
 #include <cstdlib>  // for getenv
 #include <fstream>  // IWYU pragma: keep
@@ -51,6 +52,7 @@ void open_mconfig_file(std::ifstream* file) {
     cfg_dir = CONFIG_DIR;
   }
   auto file_path = std::string(cfg_dir) + "/" + std::string(MCONFIG_FILE_NAME);
+  std::cout << "File: " << file_path << std::endl;
   file->open(file_path.c_str());
   return;
 }
@@ -80,8 +82,12 @@ bool load_service_mconfig(const std::string& service_name,
                           google::protobuf::Message* message) {
   json mconfig_json;
   try {
+    std::cout << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              << std::endl;
+    std::cout << "Service name: " << service_name << std::endl;
     *config_stream >> mconfig_json;
   } catch (const std::exception& e) {
+    std::cout << "Service name: " << e.what() << std::endl;
     MLOG(MERROR) << "Parsing failure of config stream " << e.what();
     return false;
   }
@@ -107,6 +113,8 @@ bool load_service_mconfig(const std::string& service_name,
   // Parse to message and return
   auto status =
       google::protobuf::util::JsonStringToMessage(service_it->dump(), message);
+  std::cout << "Service_it_dump: " << service_it->dump() << std::endl;
+  std::cout << "Status: " << status.ToString() << std::endl;
   if (!status.ok()) {
     MLOG(MERROR) << "Couldn't parse " << service_name
                  << " config, error: " << status.ToString();
