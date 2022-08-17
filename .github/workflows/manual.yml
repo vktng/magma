@@ -44,7 +44,7 @@ jobs:
             </testcase>
         </testsuites>' > test_report_xml.xml
     - name: Publish Test Report
-        uses: mikepenz/action-junit-report@v3
-        if: always() # always run even if the previous step fails
-        with:
-          report_paths: '**/*.xml'
+      uses: mikepenz/action-junit-report@v3
+      if: always() # always run even if the previous step fails
+      with:
+        report_paths: '**/*.xml'
