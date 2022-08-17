@@ -1,0 +1,50 @@
+# This is a basic workflow that is manually triggered
+
+name: Manual workflow
+
+# Controls when the action will run. Workflow runs when manually triggered using the UI
+# or API.
+on:
+  workflow_dispatch:
+    # Inputs the workflow accepts.
+    inputs:
+      name:
+        # Friendly description to be shown in the UI instead of 'name'
+        description: 'Person to greet'
+        # Default value if no value is explicitly provided
+        default: 'World'
+        # Input has to be provided for the workflow to run
+        required: true
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "greet"
+  greet:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+    # Runs a single command using the runners shell
+    - name: Send greeting
+      run: echo "Hello ${{ github.event.inputs.name }}"
+    - name: Create XML file
+      run: |
+        echo '
+        <testsuites name="AllTests" timestamp="2022-08-17 15:58:06.376701" time="8.05" errors="0" disabled="0" failures="0" tests="2">
+            <testcase classname="s1aptests.test_attach_detach.TestAttachDetach" name="test_attach_detach" time="3.538">
+                <system-out>--------------------------------- Captured Out ---------------------------------
+
+        </system-out>
+            </testcase>
+            <testcase classname="s1aptests.test_attach_detach_static_ip.TestAttachDetachStaticIP" name="test_attach_detach_static_ip1" time="3.500">
+                <system-out>--------------------------------- Captured Out ---------------------------------
+
+        </system-out>
+            </testcase>
+        </testsuites>' > test_report_xml.xml
+    - name: Publish Test Report
+        uses: mikepenz/action-junit-report@v3
+        if: always() # always run even if the previous step fails
+        with:
+          report_paths: '**/*.xml'
