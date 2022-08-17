@@ -384,7 +384,7 @@ def bazel_integ_test_post_build(
         ansible_setup(gateway_host, "dev", "magma_dev.yml")
         gateway_ip = gateway_host.split('@')[1].split(':')[0]
 
-    execute(_restart_gateway)
+    run("sudo service magma@magmad start")
 
     # Setup the trfserver: use the provided trfserver if given, else default to the
     # vagrant machine
@@ -404,14 +404,6 @@ def bazel_integ_test_post_build(
         )
     else:
         ansible_setup(test_host, "test", "magma_test.yml")
-
-    execute(_make_integ_tests)
-    execute(_run_integ_tests, gateway_ip)
-
-    if not gateway_host:
-        setup_env_vagrant()
-    else:
-        env.hosts = [gateway_host]
 
 
 def integ_test(
