@@ -122,6 +122,10 @@ jobs:
         with:
           path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_trfserver
           key: vagrant-box-magma-trfserver-v20220722
+      - name: Log in to vagrant cloud
+        run: |
+          echo "Logging in to vagrant cloud to mitigate rate limiting."
+          vagrant cloud auth login --token "${{ secrets.VAGRANT_TOKEN }}"
       - name: Build test vms
         run: |
           cd ${{ env.AGW_ROOT }} && fab build_test_vms
