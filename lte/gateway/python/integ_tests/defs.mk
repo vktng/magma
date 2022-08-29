@@ -1,18 +1,15 @@
 # Copyright 2020 The Magma Authors.
-
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
-
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
 PROTO_LIST:=orc8r_protos lte_protos feg_protos
-
 # Add the s1aptester integration tests
+
 PRECOMMIT_TESTS = s1aptests/test_attach_detach.py \
 s1aptests/test_attach_detach_static_ip.py \
 s1aptests/test_gateway_metrics_attach_detach.py \
@@ -36,7 +33,6 @@ s1aptests/test_no_attach_complete.py \
 s1aptests/test_no_auth_response.py \
 s1aptests/test_no_security_mode_complete.py \
 s1aptests/test_tau_periodic_inactive.py \
-s1aptests/test_tau_periodic_active.py \
 s1aptests/test_tau_ta_updating_connected_mode.py \
 s1aptests/test_eps_bearer_context_status_def_bearer_deact.py \
 s1aptests/test_eps_bearer_context_status_ded_bearer_deact.py \
@@ -109,27 +105,10 @@ s1aptests/test_multi_enb_multi_ue_diff_enbtype.py \
 s1aptests/test_multi_enb_partial_reset.py \
 s1aptests/test_multi_enb_complete_reset.py \
 s1aptests/test_multi_enb_sctp_shutdown.py \
-s1aptests/test_ipv6_paging_with_dedicated_bearer.py \
-s1aptests/test_ipv4v6_paging_with_dedicated_bearer.py \
-s1aptests/test_attach_ul_udp_data.py \
-s1aptests/test_attach_ul_tcp_data.py \
-s1aptests/test_attach_detach_attach_ul_tcp_data.py \
-s1aptests/test_attach_dl_udp_data.py \
-s1aptests/test_attach_dl_tcp_data.py \
-s1aptests/test_attach_detach_attach_dl_tcp_data.py \
-s1aptests/test_attach_detach_multiple_rar_tcp_data.py \
-s1aptests/test_attach_service_with_multi_pdns_and_bearers_mt_data.py \
 s1aptests/test_attach_asr.py \
 s1aptests/test_attach_detach_with_sctpd_restart.py \
 s1aptests/test_attach_nw_initiated_detach_with_mme_restart.py \
 s1aptests/test_attach_detach_multiple_ip_blocks_mobilityd_restart.py \
-s1aptests/test_attach_ul_udp_data_with_mme_restart.py \
-s1aptests/test_attach_ul_udp_data_with_mobilityd_restart.py \
-s1aptests/test_attach_ul_udp_data_with_multiple_service_restart.py \
-s1aptests/test_attach_ul_udp_data_with_pipelined_restart.py \
-s1aptests/test_attach_ul_udp_data_with_sessiond_restart.py \
-s1aptests/test_service_req_ul_udp_data_with_mme_restart.py \
-s1aptests/test_attach_detach_setsessionrules_tcp_data.py \
 s1aptests/test_enable_ipv6_iface.py \
 s1aptests/test_disable_ipv6_iface.py
 
@@ -138,7 +117,6 @@ s1aptests/test_attach_detach_flaky_retry_success.py \
 s1aptests/test_attach_detach_multi_ue_looped.py \
 s1aptests/test_attach_detach_ps_service_not_available.py \
 s1aptests/test_attach_detach_with_he_policy.py \
-s1aptests/test_attach_detach_rar_tcp_he.py \
 s1aptests/test_attach_restricted_plmn.py \
 s1aptests/test_imei_restriction_smc.py \
 s1aptests/test_imei_restriction_no_imeisv_in_smc.py \
@@ -162,13 +140,11 @@ s1aptests/test_multi_enb_multi_ue_diff_plmn.py \
 s1aptests/test_x2_handover.py \
 s1aptests/test_x2_handover_ping_pong.py \
 s1aptests/test_s1_handover.py \
-s1aptests/test_attach_detach_rar_tcp_data.py \
 s1aptests/test_attach_detach_with_mme_restart.py \
 s1aptests/test_attach_detach_with_mobilityd_restart.py \
 s1aptests/test_idle_mode_with_mme_restart.py \
 s1aptests/test_3485_timer_for_dedicated_bearer_with_mme_restart.py \
 s1aptests/test_3485_timer_for_default_bearer_with_mme_restart.py \
-s1aptests/test_paging_after_mme_restart.py \
 s1aptests/test_attach_nw_initiated_detach_fail.py \
 s1aptests/test_tau_ta_updating.py \
 s1aptests/test_tau_ta_updating_reject.py \
@@ -181,7 +157,6 @@ s1aptests/test_attach_implicit_detach_timer_expiry.py \
 s1aptests/test_mobile_reachability_tmr_with_mme_restart.py \
 s1aptests/test_implicit_detach_timer_with_mme_restart.py \
 s1aptests/test_restore_mme_config_after_sanity.py
-
 NON_SANITY_TESTS = s1aptests/test_modify_config_for_non_sanity.py \
 s1aptests/test_attach_detach_non_nat_dp_ul_tcp.py \
 s1aptests/test_no_auth_resp_with_mme_restart_reattach.py \
@@ -240,24 +215,21 @@ s1aptests/test_s1_handover_failure.py \
 s1aptests/test_s1_handover_timer_expiry.py \
 s1aptests/test_attach_and_mme_restart_loop_detach_and_mme_restart_loop_multi_ue.py \
 s1aptests/test_restore_config_after_non_sanity.py
-
 #---------------
 # Non-Sanity: Failure/Stuck/Crashing Test Cases
 # s1aptests/test_outoforder_erab_setup_rsp_default_bearer.py \ GitHubIssue 5992
 # s1aptests/test_stateless_multi_ue_mixedstate_mme_restart.py \ GitHubIssue 5997
 # s1aptests/test_attach_with_multiple_mme_restarts.py \ GitHubIssue 5997
-
 # Non-Sanity: Flaky Test Cases
 # s1aptests/test_attach_detach_two_pdns_with_tcptraffic.py \ GitHubIssue 9670
 # s1aptests/test_agw_offload_mixed_idle_active_multiue.py \ GitHubIssue 6063
-# s1aptests/test_attach_ul_udp_data_multi_ue.py \ Fails randomly with connection refused
-# s1aptests/test_attach_dl_udp_data_multi_ue.py \ Fails randomly with connection refused
-# s1aptests/test_attach_ul_tcp_data_multi_ue.py \ Fails randomly with connection refused
-# s1aptests/test_attach_dl_tcp_data_multi_ue.py \ Fails randomly with connection refused
+# s1aptests/TO_DELETE_multi_ue.py \ Fails randomly with connection refused
+# s1aptests/TO_DELETE_multi_ue.py \ Fails randomly with connection refused
+# s1aptests/TO_DELETE_multi_ue.py \ Fails randomly with connection refused
+# s1aptests/TO_DELETE_multi_ue.py \ Fails randomly with connection refused
 # s1aptests/test_attach_dl_ul_tcp_data_multi_ue.py \ Fails randomly with connection refused
 # s1aptests/test_data_flow_after_service_request.py \ Fails randomly with connection refused
 #---------------
-
 # Sanity: Failure/Stuck/Crashing Test Cases
 # s1aptests/test_attach_standalone_act_dflt_ber_ctxt_rej_ded_bearer_activation.py \ GitHubIssue 12779
 #---------------
@@ -269,22 +241,20 @@ s1aptests/test_restore_config_after_non_sanity.py
 # TODO: Add these testcases as part of CI automation
 # s1aptests/test_scalability_attach_detach_multi_ue.py
 #---------------
-
 # TODO: Flaky ipv6 tests which randomly fail with connection refused
 #s1aptests/test_ipv6_non_nat_dp_dl_tcp.py
 #s1aptests/test_ipv6_non_nat_dp_ul_udp.py
 #s1aptests/test_ipv6_non_nat_dp_dl_udp.py
 #s1aptests/test_ipv6_non_nat_dp_ul_tcp.py
 #---------------
-
 # TODO: Add ipv6 tests to integ test suite
 # s1aptests/test_ipv4v6_non_nat_ul_tcp.py
 # s1aptests/test_ipv4v6_non_nat_ded_bearer_ul_tcp.py
 # s1aptests/test_ipv4v6_non_nat_ded_bearer_dl_tcp.py
 # s1aptests/test_ipv6_non_nat_ded_bearer_ul_tcp.py
 # s1aptests/test_ipv6_non_nat_ded_bearer_dl_tcp.py
-
 # Add the s1aptester integration tests with federation gateway
+
 FEDERATED_TESTS = s1aptests/test_attach_detach.py \
 s1aptests/test_attach_detach_multi_ue.py \
 s1aptests/test_attach_auth_failure.py \
@@ -310,13 +280,13 @@ s1aptests/test_attach_esm_information_wrong_apn.py \
 s1aptests/test_attach_detach_secondary_pdn_invalid_apn.py \
 s1aptests/test_standalone_pdn_conn_req_with_apn_correction.py
 
-
 CLOUD_TESTS = cloud_tests/checkin_test.py \
 cloud_tests/metrics_export_test.py \
 cloud_tests/config_test.py
 
 S1AP_TESTER_CFG=$(MAGMA_ROOT)/lte/gateway/python/integ_tests/data/s1ap_tester_cfg
-S1AP_TESTER_PYTHON_PATH=$(S1AP_TESTER_ROOT)/bin
 
+S1AP_TESTER_PYTHON_PATH=$(S1AP_TESTER_ROOT)/bin
 # Local integ tests are run on the magma access gateway, not the test VM
+
 LOCAL_INTEG_TESTS = gxgy_tests
