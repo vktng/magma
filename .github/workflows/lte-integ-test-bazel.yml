@@ -240,6 +240,13 @@ jobs:
             //lte/gateway/python/integ_tests/s1aptests:test_nas_non_delivery_for_smc \
             //lte/gateway/python/integ_tests/s1aptests:test_nas_non_delivery_for_identity_req \
             //lte/gateway/python/integ_tests/s1aptests:test_sctp_shutdown_after_identity_req"' magma_test -- -ttt
+          vagrant ssh -c 'cd ~/magma; cp /var/tmp/test_results/integtest_merged_report/integtests_report.xml .' magma_test -- -ttt
+      - name: Publish integ test results
+        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        if: always()
+        with:
+          name: test_results
+          path: integtests_report.xml
       - name: Publish bazel profile
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: always()
