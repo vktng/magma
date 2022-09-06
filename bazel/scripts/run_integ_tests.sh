@@ -206,7 +206,7 @@ list_traffic_server_tests() {
 setup_extended_tests() {
     echo "Setting up the environment for the extended tests."
     echo "Building..."
-    bazel build "//lte/gateway/python/integ_tests/s1aptests:test_modify_mme_config_for_sanity" --define=on_magma_test=1
+    bazel build "//lte/gateway/python/integ_tests/s1aptests:test_modify_mme_config_for_sanity" --define=on_magma_test=1 --jobs=1
     echo "Executing..."
     if sudo "${MAGMA_ROOT}/bazel-bin/lte/gateway/python/integ_tests/s1aptests/test_modify_mme_config_for_sanity";
     then
@@ -221,7 +221,7 @@ teardown_extended_tests() {
     then
         echo "Cleaning up the environment after the extended tests."
         echo "Building..."
-        bazel build "//lte/gateway/python/integ_tests/s1aptests:test_restore_mme_config_after_sanity" --define=on_magma_test=1
+        bazel build "//lte/gateway/python/integ_tests/s1aptests:test_restore_mme_config_after_sanity" --define=on_magma_test=1 --jobs=1
         echo "Executing..."
         if sudo "${MAGMA_ROOT}/bazel-bin/lte/gateway/python/integ_tests/s1aptests/test_restore_mme_config_after_sanity";
         then
@@ -237,7 +237,7 @@ teardown_extended_tests() {
 setup_nonsanity_tests() {
     echo "Setting up the environment for the nonsanity tests."
     echo "Building..."
-    bazel build "//lte/gateway/python/integ_tests/s1aptests:test_modify_config_for_non_sanity" --define=on_magma_test=1
+    bazel build "//lte/gateway/python/integ_tests/s1aptests:test_modify_config_for_non_sanity" --define=on_magma_test=1 --jobs=1
     echo "Executing..."
     if sudo "${MAGMA_ROOT}/bazel-bin/lte/gateway/python/integ_tests/s1aptests/test_modify_config_for_non_sanity";
     then
@@ -252,7 +252,7 @@ teardown_nonsanity_tests() {
     then
         echo "Cleaning up the environment after the nonsanity tests."
         echo "Building..."
-        bazel build "//lte/gateway/python/integ_tests/s1aptests:test_restore_config_after_non_sanity" --define=on_magma_test=1
+        bazel build "//lte/gateway/python/integ_tests/s1aptests:test_restore_config_after_non_sanity" --define=on_magma_test=1 --jobs=1
         echo "Executing..."
         if sudo "${MAGMA_ROOT}/bazel-bin/lte/gateway/python/integ_tests/s1aptests/test_restore_config_after_non_sanity";
         then
@@ -288,8 +288,9 @@ run_test() {
     (
         echo "BUILDING TEST: ${TARGET}"
         set -x
-        bazel build "${TARGET}" --define=on_magma_test=1
+        bazel build "${TARGET}" --define=on_magma_test=1 --jobs=1 --profile="profile_${SHORT_TARGET}"
         set +x
+        bazel shutdown
         echo "RUNNING TEST: ${TARGET}"
         set -x
         sudo "${MAGMA_ROOT}/bazel-bin/${TARGET_PATH}/${SHORT_TARGET}" "${FLAKY_ARGS[@]}" \

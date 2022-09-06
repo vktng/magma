@@ -91,11 +91,11 @@ jobs:
         run: |
           cd lte/gateway
           vagrant ssh -c 'cd ~/magma; bazel/scripts/link_scripts_for_bazel_integ_tests.sh;' magma
-      - name: Run the sudo tests
-        id: sudo_tests
-        run: |
-          cd lte/gateway
-          vagrant ssh -c 'cd ~/magma; bazel/scripts/run_sudo_tests.sh --retry-on-failure --retry-attempts 1;' magma
+      # - name: Run the sudo tests
+      #   id: sudo_tests
+      #   run: |
+      #     cd lte/gateway
+      #     vagrant ssh -c 'cd ~/magma; bazel/scripts/run_sudo_tests.sh --retry-on-failure --retry-attempts 1;' magma
       - name: Setup magma test VM and traffic server VM
         if: ${{ success() || steps.sudo_tests.conclusion == 'failure' }}
         run: |
@@ -112,13 +112,13 @@ jobs:
           cd lte/gateway
           vagrant ssh -c 'cd ~/magma; bazel/scripts/remote_cache_bazelrc_setup.sh "${{ env.CACHE_KEY_MAGMA_TEST }}" "${{ env.REMOTE_DOWNLOAD_OPTIMIZATION }}" "${{ secrets.BAZEL_REMOTE_PASSWORD }}";' magma
           # The ssh option '-ttt' is forcing tty allocation, even if ssh has no local tty.
-          vagrant ssh -c 'cd ~/magma; bash -c "bazel/scripts/run_integ_tests.sh"' magma_test -- -ttt
+          vagrant ssh -c 'cd ~/magma; bash -c "bazel/scripts/run_integ_tests.sh --precommit"' magma_test -- -ttt
       - name: Publish bazel profile
         uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
         if: always()
         with:
           name: Bazel profile lte integ tests
-          path: bazel_profile_lte_integ_tests
+          path: profile*
       - name: Notify failure to slack
         if: failure() && github.repository_owner == 'magma'
         uses: Ilshidur/action-slack@689ad44a9c9092315abd286d0e3a9a74d31ab78a # pin@2.1.0
