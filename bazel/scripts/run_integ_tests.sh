@@ -167,6 +167,7 @@ list_all_tests() {
     TARGET_PATH=""
     echo "All integration tests:"
     create_test_targets "true"
+    sudo kill -9 "${CPU_CHECK_PID}"
     exit 0
 }
 
@@ -200,13 +201,14 @@ list_nonsanity_tests() {
 list_traffic_server_tests() {
     echo "Tests that require the traffic server:"
     bazel query "attr(tags, traffic_server_test, kind(py_test, //lte/gateway/python/integ_tests/s1aptests/...))"
+    sudo kill -9 "${CPU_CHECK_PID}"
     exit 0
 }
 
 setup_extended_tests() {
     echo "Setting up the environment for the extended tests."
     echo "Building..."
-    bazel build "//lte/gateway/python/integ_tests/s1aptests:test_modify_mme_config_for_sanity" --define=on_magma_test=1
+    bazel build "//lte/gateway/python/integ_tests/s1aptests:test_modify_mme_config_for_sanity" --define=on_magma_test=1 "${BAZEL_OPTIONS[@]}"
     echo "Executing..."
     if sudo "${MAGMA_ROOT}/bazel-bin/lte/gateway/python/integ_tests/s1aptests/test_modify_mme_config_for_sanity";
     then
@@ -221,7 +223,7 @@ teardown_extended_tests() {
     then
         echo "Cleaning up the environment after the extended tests."
         echo "Building..."
-        bazel build "//lte/gateway/python/integ_tests/s1aptests:test_restore_mme_config_after_sanity" --define=on_magma_test=1
+        bazel build "//lte/gateway/python/integ_tests/s1aptests:test_restore_mme_config_after_sanity" --define=on_magma_test=1 "${BAZEL_OPTIONS[@]}"
         echo "Executing..."
         if sudo "${MAGMA_ROOT}/bazel-bin/lte/gateway/python/integ_tests/s1aptests/test_restore_mme_config_after_sanity";
         then
@@ -237,7 +239,7 @@ teardown_extended_tests() {
 setup_nonsanity_tests() {
     echo "Setting up the environment for the nonsanity tests."
     echo "Building..."
-    bazel build "//lte/gateway/python/integ_tests/s1aptests:test_modify_config_for_non_sanity" --define=on_magma_test=1
+    bazel build "//lte/gateway/python/integ_tests/s1aptests:test_modify_config_for_non_sanity" --define=on_magma_test=1 "${BAZEL_OPTIONS[@]}"
     echo "Executing..."
     if sudo "${MAGMA_ROOT}/bazel-bin/lte/gateway/python/integ_tests/s1aptests/test_modify_config_for_non_sanity";
     then
@@ -252,7 +254,7 @@ teardown_nonsanity_tests() {
     then
         echo "Cleaning up the environment after the nonsanity tests."
         echo "Building..."
-        bazel build "//lte/gateway/python/integ_tests/s1aptests:test_restore_config_after_non_sanity" --define=on_magma_test=1
+        bazel build "//lte/gateway/python/integ_tests/s1aptests:test_restore_config_after_non_sanity" --define=on_magma_test=1 "${BAZEL_OPTIONS[@]}"
         echo "Executing..."
         if sudo "${MAGMA_ROOT}/bazel-bin/lte/gateway/python/integ_tests/s1aptests/test_restore_config_after_non_sanity";
         then
@@ -288,7 +290,7 @@ run_test() {
     (
         echo "BUILDING TEST: ${TARGET}"
         set -x
-        bazel build "${TARGET}" --define=on_magma_test=1
+        bazel build "${TARGET}" --define=on_magma_test=1 "${BAZEL_OPTIONS[@]}" --profile="profile_${SHORT_TARGET}"
         set +x
         echo "RUNNING TEST: ${TARGET}"
         set -x
@@ -319,6 +321,10 @@ print_summary() {
 # SCRIPT SECTION
 ###############################################################################
 
+while [[ 0 ]]; do  sleep 2 && top -b -n 1 | grep Cpu && free -h; done &
+CPU_CHECK_PID=$!
+echo "CPU_CHECK_PID: ${CPU_CHECK_PID}"
+
 PRECOMMIT_TEST_TARGETS=()
 EXTENDED_TEST_TARGETS=()
 NONSANITY_TEST_TARGETS=()
@@ -347,6 +353,7 @@ FAILED_LIST=()
 FAILED_LIST_FILE="/tmp/last_failed_integration_tests.txt"
 INTEGTEST_REPORT_FOLDER="/var/tmp/test_results"
 MERGED_REPORT_FOLDER="${INTEGTEST_REPORT_FOLDER}/integtest_merged_report"
+BAZEL_OPTIONS=() #( "--local_cpu_resources=HOST_CPUS*.8" )
 
 BOLD='\033[1m'
 RED='\033[0;31m'
@@ -363,14 +370,17 @@ while [[ $# -gt 0 ]]; do
       ;;
     --list-precommit)
       list_precommit_tests
+      sudo kill -9 "${CPU_CHECK_PID}"
       exit 0
       ;;
     --list-extended)
       list_extended_tests
+      sudo kill -9 "${CPU_CHECK_PID}"
       exit 0
       ;;
     --list-nonsanity)
       list_nonsanity_tests
+      sudo kill -9 "${CPU_CHECK_PID}"
       exit 0
       ;;
     --list-traffic-server)
@@ -393,10 +403,12 @@ while [[ $# -gt 0 ]]; do
       ;;
     --setup-extended)
       setup_extended_tests
+      sudo kill -9 "${CPU_CHECK_PID}"
       exit 0
       ;;
     --teardown-extended)
       teardown_extended_tests
+      sudo kill -9 "${CPU_CHECK_PID}"
       exit 0
       ;;
     --skip-setup-teardown-extended)
@@ -405,10 +417,12 @@ while [[ $# -gt 0 ]]; do
       ;;
     --setup-nonsanity)
       setup_nonsanity_tests
+      sudo kill -9 "${CPU_CHECK_PID}"
       exit 0
       ;;
     --teardown-nonsanity)
       teardown_nonsanity_tests
+      sudo kill -9 "${CPU_CHECK_PID}"
       exit 0
       ;;
     --skip-setup-teardown-nonsanity)
@@ -430,6 +444,7 @@ while [[ $# -gt 0 ]]; do
       ;;
     --help)
       help
+      sudo kill -9 "${CPU_CHECK_PID}"
       exit 0
       ;;
     --*|-*)
@@ -448,23 +463,28 @@ do
     if [[ "${TARGET_PATH}" == *"${EXTENDED_TEST_SETUP}" ]];
     then
         setup_extended_tests
+        sudo kill -9 "${CPU_CHECK_PID}"
         exit 0
     elif [[ "${TARGET_PATH}" == *"${EXTENDED_TEST_TEARDOWN}" ]];
     then
         teardown_extended_tests
+        sudo kill -9 "${CPU_CHECK_PID}"
         exit 0
     elif [[ "${TARGET_PATH}" == *"${NONSANITY_TEST_SETUP}" ]];
     then
         setup_nonsanity_tests
+        sudo kill -9 "${CPU_CHECK_PID}"
         exit 0
     elif [[ "${TARGET_PATH}" == *"${NONSANITY_TEST_TEARDOWN}" ]];
     then
         teardown_nonsanity_tests
+        sudo kill -9 "${CPU_CHECK_PID}"
         exit 0
     fi
 done
 
 create_test_targets
+
 
 TOTAL_TESTS=${#PRECOMMIT_TEST_TARGETS[@]}
 TOTAL_TESTS=$((TOTAL_TESTS + ${#EXTENDED_TEST_TARGETS[@]}))
@@ -557,5 +577,7 @@ echo "${FAILED_LIST[@]}" > "${FAILED_LIST_FILE}"
 create_xml_report
 
 print_summary "${NUM_SUCCESS}" "${TOTAL_TESTS}"
+
+sudo kill -9 "${CPU_CHECK_PID}"
 
 [[ "${TOTAL_TESTS}" == "${NUM_SUCCESS}" ]]

@@ -96,6 +96,9 @@ print_summary() {
 # SCRIPT SECTION
 ###############################################################################
 
+while [[ 0 ]]; do  sleep 2 && top -b -n 1 | grep Cpu && free -h; done &
+CPU_CHECK_PID=$!
+
 TARGET_PATH=""
 declare -a TEST_TARGETS
 declare -A TEST_RESULTS
@@ -170,5 +173,7 @@ done
 create_xml_report
 
 print_summary "${NUM_SUCCESS}" "${TOTAL_TESTS}"
+
+sudo kill -9 "${CPU_CHECK_PID}"
 
 [[ "${TOTAL_TESTS}" == "${NUM_SUCCESS}" ]]
