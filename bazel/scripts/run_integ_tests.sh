@@ -149,6 +149,10 @@ create_test_targets() {
         echo "ERROR: No targets found with the given options!"
         exit 1
     fi
+    echo "BUILDING TESTS:"
+    set -x
+    bazel build "${ALL_TARGETS[@]}" --define=on_magma_test=1 "${BAZEL_OPTIONS[@]}" --profile="profile_${TARGET#*:}"
+    set +x
 }
 
 create_precommit_test_targets() {
@@ -288,10 +292,6 @@ run_test() {
     local TARGET_PATH=${TARGET%:*}
     local SHORT_TARGET=${TARGET#*:}
     (
-        echo "BUILDING TEST: ${TARGET}"
-        set -x
-        bazel build "${TARGET}" --define=on_magma_test=1 "${BAZEL_OPTIONS[@]}" --profile="profile_${SHORT_TARGET}"
-        set +x
         echo "RUNNING TEST: ${TARGET}"
         set -x
         sudo "${MAGMA_ROOT}/bazel-bin/${TARGET_PATH}/${SHORT_TARGET}" "${FLAKY_ARGS[@]}" \
