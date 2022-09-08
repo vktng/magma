@@ -50,7 +50,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     magma.vm.provider "virtualbox" do |vb|
       vb.name = "magma-dev"
       vb.linked_clone = true
-      vb.customize ["modifyvm", :id, "--memory", ENV.fetch("MAGMA_DEV_MEMORY_MB", "8192")]
+      vb.customize ["modifyvm", :id, "--memory", ENV.fetch("MAGMA_DEV_MEMORY_MB", "9216")]
       vb.customize ["modifyvm", :id, "--cpus", ENV.fetch("MAGMA_DEV_CPUS", "4")]
       vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
       vb.customize ["guestproperty", "set", :id, "/VirtualBox/GuestAdd/VBoxService/--timesync-set-threshold", 1000 ]
@@ -133,7 +133,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     magma_test.vm.provider "virtualbox" do |vb|
       vb.name = "magma_test"
       vb.linked_clone = true
-      vb.customize ["modifyvm", :id, "--memory", "2048"]
+      vb.customize ["modifyvm", :id, "--memory", "1024"]
       vb.customize ["modifyvm", :id, "--cpus", "1"]
       vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
     end
