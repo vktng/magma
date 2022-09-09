@@ -100,7 +100,7 @@ jobs:
         if: ${{ success() || steps.sudo_tests.conclusion == 'failure' }}
         run: |
           cd lte/gateway
-          export MAGMA_DEV_CPUS=3
+          export MAGMA_DEV_CPUS=2
           export MAGMA_DEV_MEMORY_MB=9216
           fab bazel_integ_test_post_build
           vagrant ssh -c 'bash -ci "disable-tcp-checksumming"' magma
